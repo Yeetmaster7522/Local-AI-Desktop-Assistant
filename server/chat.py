@@ -15,34 +15,34 @@ class LM:
             self, 
             model: str, 
             tools: dict, 
+            sound_queue: Queue,
             think=False, 
-            keep_alive="30m"
+            keep_alive="30m",
             ):
         """
         Args:
-            model: Language model being used
-            tools: Dictionary defining external API calls supported by the model
-            think: Controls language model's internal reasoning before generating an input
-            keep_alive: duration to ensure the model remains fully responsive for the defined period
+            model (str): Language model being used
+            tools (dict): Dictionary defining external API calls supported by the model
+            sound_queue (queue): the sound queue
+            think (bool): Controls language model's internal reasoning before generating an input
+            keep_alive (str): duration to ensure the model remains fully responsive for the defined period
         """
         
         self.__messages: list = []
 
         self.__model: str = model
-
         self.__tools: dict = tools
+        self.__sq = sound_queue
+
         self.__think: bool | str = think
         self.__keep_alive: str = keep_alive
 
-    def talk(self, msg: str, sound_queue: Queue, role="user") -> None:
+    def talk(self, msg: str, role="user") -> None:
         """
-        sends message to LM
-        prints out answer
-        sends answer to queue to be spoken aloud
+        sends message to LM and manages its outputs
 
         Args:
             msg: the msg being sent to the LM
-            sound_queue: the sound queue
             role: the role of the messenger
         """
 
@@ -50,7 +50,7 @@ class LM:
         if msg != "": self.__messages.append({ "role": role, "content": msg })
 
         # gets output from LM
-        content, tool_calls = self.__stream(sound_queue)
+        content, tool_calls = self.__stream()
 
         # append accumulated fields to the messages for the next request
         if content or tool_calls:
@@ -66,15 +66,12 @@ class LM:
                 print(e)
 
         # makes LM talk again to discuss results from tool calls
-        if tool_calls: self.talk("", sound_queue)
+        if tool_calls: self.talk("")
 
-    def __stream(self, sound_queue: Queue) -> tuple[str,list]:
+    def __stream(self) -> tuple[str,list]:
         """
         Gets the output and tools from the LM.
         It will stream the content of the output in real time.
-
-        Args:
-            sound_queue (Queue): sound queue
 
         Returns:
             content (str): The text output from the LM
@@ -97,7 +94,7 @@ class LM:
 
         for chunk in stream:
             print(chunk.message.content, end="", flush=True)
-            sound_queue.put(chunk.message.content)
+            self.__sq.put(chunk.message.content)
             content += chunk.message.content
 
             if chunk.message.tool_calls:

@@ -16,30 +16,11 @@ from queue import Queue
 import tools
 
 
-# setup language model and text-to-speech
-lm = LM(
-    model="astra-q-uncensored", 
-    tools={
-        "web_search": tools.web_search, 
-        "get_website_content": tools.get_website_content,
-        "get_datetime": tools.get_datetime,
-        "take_screenshot": tools.take_screenshot,
-        "run_command": tools.run_command,
-    }
-)
-
-def worker(sound_queue: Queue, voice_queue: Queue) -> None:
+def worker() -> None:
     """
     A worker thread that manages requests
-
-    Args:
-        sound_queue (Queue): Requests from the LM to say things
-        voice_queue (Queue): Requests/inputs from the user's microphone
     """
-    
-    # set up TTS and STT
-    tts = TTS(rate=200, voice_index=2)
-    stt = STT(voice_queue)
+
     buffer = ""
 
     while True:
@@ -51,13 +32,13 @@ def worker(sound_queue: Queue, voice_queue: Queue) -> None:
             buffer = ""
         sound_queue.task_done()
 
-        user_input = voice_queue.get().strip()
-        if user_input != "":
-            lm.talk(user_input, sound_queue)
+        # user_input = voice_queue.get().strip()
+        # if user_input != "":
+        #     lm.talk(user_input)
         
-        voice_queue.task_done()
+        # voice_queue.task_done()
 
-def main(sound_queue: Queue) -> None:
+def main() -> None:
     """
     Gets user input and passes it onto LM as well as flushing the voice queue.
     When user types /break it will stop the process.
@@ -65,7 +46,7 @@ def main(sound_queue: Queue) -> None:
     Args:
         sound_queue (Queue): Requests from the LM to say things
     """
-    
+
     while True:
         # get message
         msg = input("\n\n-> ")
@@ -76,17 +57,35 @@ def main(sound_queue: Queue) -> None:
             sound_queue.get_nowait()
             sound_queue.task_done()
 
-        lm.talk(msg, sound_queue)
+        lm.talk(msg)
         
     # kill model
     lm.stop()
 
-# multithreading
-sound_queue = Queue()
-voice_queue = Queue()
-t1 = Thread(target=main, args=(sound_queue, ))
-t2 = Thread(target=worker, args=(sound_queue, voice_queue), daemon=True)
-t1.start()
-t2.start()
+if __name__ == "__main__":
+    # multithreading
+    sound_queue = Queue()
+    voice_queue = Queue()
 
-t1.join()
+    # setup language model and text-to-speech
+    lm = LM(
+        model="astra-q-uncensored", 
+        tools={
+            "web_search": tools.web_search, 
+            "get_website_content": tools.get_website_content,
+            "get_datetime": tools.get_datetime,
+            "take_screenshot": tools.take_screenshot,
+            "run_command": tools.run_command,
+        },
+        sound_queue=sound_queue
+    )
+    # set up TTS and STT
+    tts = TTS(rate=200, voice_index=2)
+    # stt = STT(voice_queue)
+
+    t1 = Thread(target=main)
+    t2 = Thread(target=worker, daemon=True)
+    t1.start()
+    t2.start()
+
+    t1.join()
