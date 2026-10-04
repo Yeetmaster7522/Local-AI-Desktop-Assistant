@@ -1,5 +1,4 @@
 import pyttsx3
-from queue import Queue
 
 class TTS:
     """
@@ -24,7 +23,8 @@ class TTS:
     def speak(self, txt: str) -> None:
         """
         Converts txt into speech.
-        Because of some technical issues the approach used here is most likely inefficient.
+        Because of some technical issues regarding multiprocessing and pyttsx3,
+        this method is currently the best way to do it.
 
         Args:
             txt: the txt that will be turned into speech
