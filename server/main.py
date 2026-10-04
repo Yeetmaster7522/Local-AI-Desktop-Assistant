@@ -8,12 +8,14 @@ os.environ["OLLAMA_API_KEY"] = key
 print(os.getenv("OLLAMA_API_KEY"))
 
 
-from chat import LM
-from tts import TTS
-from stt import STT
+from _chat import LM
+from _tts import TTS
+from _stt import STT
+import _tools as _tools
+import _server as server
+
 from threading import Thread
 from queue import Queue
-import tools
 
 
 def worker() -> None:
@@ -71,11 +73,11 @@ if __name__ == "__main__":
     lm = LM(
         model="astra-q-uncensored", 
         tools={
-            "web_search": tools.web_search, 
-            "get_website_content": tools.get_website_content,
-            "get_datetime": tools.get_datetime,
-            "take_screenshot": tools.take_screenshot,
-            "run_command": tools.run_command,
+            "web_search": _tools.web_search, 
+            "get_website_content": _tools.get_website_content,
+            "get_datetime": _tools.get_datetime,
+            "take_screenshot": _tools.take_screenshot,
+            "run_command": _tools.run_command,
         },
         sound_queue=sound_queue
     )
@@ -85,7 +87,10 @@ if __name__ == "__main__":
 
     t1 = Thread(target=main)
     t2 = Thread(target=worker, daemon=True)
+    t3 = Thread(target=server.run, daemon=True)
+
     t1.start()
     t2.start()
+    t3.start()
 
     t1.join()

@@ -12,6 +12,13 @@ async def main():
     server = await serve(echo, "localhost", 8000)
     await server.serve_forever()
 
-if __name__ == "__main__":
-    print("Starting server...")
+def run() -> None:
+    """
+    Starts the server
+    """
+
+    print("starting server...")
     asyncio.run(main())
+
+if __name__ == "__main__":
+    run()
