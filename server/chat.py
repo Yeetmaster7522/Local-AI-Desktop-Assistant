@@ -19,7 +19,7 @@ class LM:
             keep_alive="30m"
             ):
         """
-        KEY PARAMETERS:
+        Args:
             model: Language model being used
             tools: Dictionary defining external API calls supported by the model
             think: Controls language model's internal reasoning before generating an input
@@ -34,16 +34,16 @@ class LM:
         self.__think: bool | str = think
         self.__keep_alive: str = keep_alive
 
-    def talk(self, msg: str, sound_queue: Queue, role="user"):
+    def talk(self, msg: str, sound_queue: Queue, role="user") -> None:
         """
-        KEY PARAMETERS:
-            msg: the msg being sent to the LM
-            queue: the sound queue
-            role: the role of the messenger
-
         sends message to LM
         prints out answer
         sends answer to queue to be spoken aloud
+
+        Args:
+            msg: the msg being sent to the LM
+            sound_queue: the sound queue
+            role: the role of the messenger
         """
 
         # if the msg is not empty it will append it to the chat history
@@ -70,8 +70,15 @@ class LM:
 
     def __stream(self, sound_queue: Queue) -> tuple[str,list]:
         """
-        KEY PARAMETERS:
-            queue: sound queue
+        Gets the output and tools from the LM.
+        It will stream the content of the output in real time.
+
+        Args:
+            sound_queue (Queue): sound queue
+
+        Returns:
+            content (str): The text output from the LM
+            tool_calls (list): The tool calls from the LM
         """
         
         # get response from model
@@ -99,7 +106,7 @@ class LM:
 
         return content, tool_calls
 
-    def stop(self):
+    def stop(self) -> None:
         """
         Kills the model by passing a command directly to the OS.
         """

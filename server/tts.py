@@ -11,7 +11,7 @@ class TTS:
     
     def __init__(self, rate=150, volume=1.0, voice_index=0):
         """
-        KEY PARAMETERS
+        Args
             rate: rate of speech / how fast it talks
             volume: from 0 to 1. Controls volume of speech
             voice_index: allows for selection of voice from engine.getProperty("voices")
@@ -21,14 +21,13 @@ class TTS:
         self.__volume = volume
         self.voice_index = voice_index
 
-    def speak(self, txt: str):
+    def speak(self, txt: str) -> None:
         """
-        KEY PARAMETERS:
-            txt: the txt that will be turned into speech
-
         Converts txt into speech.
-        
         Because of some technical issues the approach used here is most likely inefficient.
+
+        Args:
+            txt: the txt that will be turned into speech
         """
 
         # sets property of voice engine

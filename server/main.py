@@ -28,7 +28,16 @@ lm = LM(
     }
 )
 
-def worker(sound_queue: Queue, voice_queue: Queue):
+def worker(sound_queue: Queue, voice_queue: Queue) -> None:
+    """
+    A worker thread that manages requests
+
+    Args:
+        sound_queue (Queue): Requests from the LM to say things
+        voice_queue (Queue): Requests/inputs from the user's microphone
+    """
+    
+    # set up TTS and STT
     tts = TTS(rate=200, voice_index=2)
     stt = STT(voice_queue)
     buffer = ""
@@ -48,13 +57,13 @@ def worker(sound_queue: Queue, voice_queue: Queue):
         
         voice_queue.task_done()
 
-def main(soundQueue: Queue):
+def main(sound_queue: Queue) -> None:
     """
-    KEY PARAMETERS:
-        queue: the sound queue
-
-    Gets user input and passes it onto LLM as well as flushing the voice queue.
+    Gets user input and passes it onto LM as well as flushing the voice queue.
     When user types /break it will stop the process.
+    
+    Args:
+        sound_queue (Queue): Requests from the LM to say things
     """
     
     while True:
@@ -63,11 +72,11 @@ def main(soundQueue: Queue):
         if msg == "/break": break
 
         # flush voice queue
-        while not soundQueue.empty():
-            soundQueue.get_nowait()
-            soundQueue.task_done()
+        while not sound_queue.empty():
+            sound_queue.get_nowait()
+            sound_queue.task_done()
 
-        lm.talk(msg, soundQueue)
+        lm.talk(msg, sound_queue)
         
     # kill model
     lm.stop()
