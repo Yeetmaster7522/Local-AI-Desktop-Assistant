@@ -11,11 +11,12 @@ print(os.getenv("OLLAMA_API_KEY"))
 from _chat import LM
 from _tts import TTS
 from _stt import STT
-import _tools as _tools
+import _tools as tools
 import _server as server
 
 from threading import Thread
 from queue import Queue
+import asyncio
 
 
 def worker() -> None:
@@ -29,7 +30,7 @@ def worker() -> None:
         chunk = sound_queue.get()
         buffer += chunk
 
-        if buffer.endswith((".", "!", "?", "\n", "]", ",", ":", "。", "？", "～", "、")):
+        if buffer.endswith((".", "!", "?", "\n", "]", ",", ":", "。", "？", "～", "、", "-", ")", "*")):
             tts.speak(buffer)
             buffer = ""
         sound_queue.task_done()
@@ -68,26 +69,27 @@ if __name__ == "__main__":
     # multithreading
     sound_queue = Queue()
     voice_queue = Queue()
+    server_queue = Queue()
 
     # setup language model and text-to-speech
     lm = LM(
         model="astra-q-uncensored", 
         tools={
-            "web_search": _tools.web_search, 
-            "get_website_content": _tools.get_website_content,
-            "get_datetime": _tools.get_datetime,
-            "take_screenshot": _tools.take_screenshot,
-            "run_command": _tools.run_command,
+            "web_search": tools.web_search, 
+            "get_website_content": tools.get_website_content,
+            "get_datetime": tools.get_datetime,
+            "take_screenshot": tools.take_screenshot,
+            "run_command": tools.run_command,
         },
         sound_queue=sound_queue
     )
     # set up TTS and STT
-    tts = TTS(rate=200, voice_index=2)
+    tts = TTS(rate=200, voice_index=2, server_queue=server_queue)
     # stt = STT(voice_queue)
 
     t1 = Thread(target=main)
     t2 = Thread(target=worker, daemon=True)
-    t3 = Thread(target=server.run, daemon=True)
+    t3 = Thread(target=server.run, args=(server_queue,), daemon=True)
 
     t1.start()
     t2.start()
