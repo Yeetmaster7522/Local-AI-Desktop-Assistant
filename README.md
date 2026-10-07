@@ -1,4 +1,4 @@
-# Anime-Virtual-Assistant
+# Local AI Desktop Assistant
 
 Locally run AI desktop assistant meant to help me with daily tasks or keep me company.
 
