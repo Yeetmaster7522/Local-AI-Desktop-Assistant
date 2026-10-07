@@ -39,6 +39,7 @@ class TTS:
         self.__engine.setProperty("voice", voices[self.voice_index].id)
 
         # says txt aloud and allows it to finish
+        self.__engine.save_to_file(txt, "speech.wav")
         self.__engine.say(txt)
         self.__engine.runAndWait()
         self.__engine.stop()
