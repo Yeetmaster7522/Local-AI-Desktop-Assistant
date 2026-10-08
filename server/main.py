@@ -30,7 +30,7 @@ def worker() -> None:
         chunk = sound_queue.get()
         buffer += chunk
 
-        if buffer.endswith((".", "!", "?", "\n", "]", ",", ":", "。", "？", "～", "、", "-", ")", "*")):
+        if buffer.endswith((".", "!", "?", "\n", "]", ",", ":", "。", "？", "～", "、", "-", ")", "*", '"', "and", "but", "or", "so", "because", "though", "since", "as", "—")):
             tts.speak(buffer)
             buffer = ""
         sound_queue.task_done()

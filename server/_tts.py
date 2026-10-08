@@ -46,7 +46,10 @@ class TTS:
         self.__engine.runAndWait()
         self.__engine.say(txt)
         if self.__server_queue:
-            self.__server_queue.put_nowait(self.get_normalized_amplitude())
+            try:
+                self.__server_queue.put_nowait(self.get_normalized_amplitude())
+            except ValueError:
+                pass
 
         self.__engine.runAndWait()
         self.__engine.stop()
